@@ -2,6 +2,7 @@
 name = "rust-code-analysis-cli"
 version = "0.0.18"
 authors = ["Calixte Denizet <cdenizet@mozilla.com>"]
+documentation = "https://docs.rs/rust-code-analysis/"
 repository = "https://github.com/mozilla/rust-code-analysis"
 edition = "2018"
 keywords = ["metrics"]
