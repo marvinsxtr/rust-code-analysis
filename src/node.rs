@@ -1,3 +1,4 @@
+use serde::{Serialize, Serializer, ser::SerializeStruct};
 use tree_sitter::Node as OtherNode;
 
 use crate::traits::Search;
@@ -90,5 +91,23 @@ impl<'a> Search<'a> for Node<'a> {
         for child in self.0.children(&mut cursor) {
             action(&Node::new(child));
         }
+    }
+}
+
+impl<'a> Serialize for Node<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let node = &self.object();
+        let start_position = node.start_position();
+        let end_position = node.end_position();
+
+        let mut s = serializer.serialize_struct("Node", 4)?;
+        s.serialize_field("kind", node.kind())?;
+        s.serialize_field("kind_id", &node.kind_id())?;
+        s.serialize_field("start_position", &[start_position.row + 1, start_position.column + 1])?;
+        s.serialize_field("end_position", &[end_position.row + 1, end_position.column + 1])?;
+        s.end()
     }
 }

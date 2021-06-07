@@ -3,8 +3,7 @@ use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-
-use rust_code_analysis::FuncSpace;
+use serde::Serialize;
 
 #[derive(Debug, Clone)]
 pub enum Format {
@@ -19,9 +18,9 @@ impl Format {
         &["cbor", "json", "toml", "yaml"]
     }
 
-    pub fn dump_formats(
+    pub fn dump_formats<S: Serialize>(
         &self,
-        space: &FuncSpace,
+        data: &S,
         path: &Path,
         output_path: &Option<PathBuf>,
         pretty: bool,
@@ -37,21 +36,21 @@ impl Format {
                 )),
                 Format::Json => {
                     let json_data = if pretty {
-                        serde_json::to_string_pretty(&space).unwrap()
+                        serde_json::to_string_pretty(&data).unwrap()
                     } else {
-                        serde_json::to_string(&space).unwrap()
+                        serde_json::to_string(&data).unwrap()
                     };
                     writeln!(stdout, "{}", json_data)
                 }
                 Format::Toml => {
                     let toml_data = if pretty {
-                        toml::to_string_pretty(&space).unwrap()
+                        toml::to_string_pretty(&data).unwrap()
                     } else {
-                        toml::to_string(&space).unwrap()
+                        toml::to_string(&data).unwrap()
                     };
                     writeln!(stdout, "{}", toml_data)
                 }
-                Format::Yaml => writeln!(stdout, "{}", serde_yaml::to_string(&space).unwrap()),
+                Format::Yaml => writeln!(stdout, "{}", serde_yaml::to_string(&data).unwrap()),
             }
         } else {
             let format_ext = match self {
@@ -87,26 +86,26 @@ impl Format {
 
             let mut format_file = File::create(format_path)?;
             match self {
-                Format::Cbor => serde_cbor::to_writer(format_file, &space)
+                Format::Cbor => serde_cbor::to_writer(format_file, &data)
                     .map_err(|e| Error::new(ErrorKind::Other, e.to_string())),
                 Format::Json => {
                     if pretty {
-                        serde_json::to_writer_pretty(format_file, &space)
+                        serde_json::to_writer_pretty(format_file, &data)
                             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))
                     } else {
-                        serde_json::to_writer(format_file, &space)
+                        serde_json::to_writer(format_file, &data)
                             .map_err(|e| Error::new(ErrorKind::Other, e.to_string()))
                     }
                 }
                 Format::Toml => {
                     let toml_data = if pretty {
-                        toml::to_string_pretty(&space).unwrap()
+                        toml::to_string_pretty(&data).unwrap()
                     } else {
-                        toml::to_string(&space).unwrap()
+                        toml::to_string(&data).unwrap()
                     };
                     format_file.write_all(toml_data.as_bytes())
                 }
-                Format::Yaml => serde_yaml::to_writer(format_file, &space)
+                Format::Yaml => serde_yaml::to_writer(format_file, &data)
                     .map_err(|e| Error::new(ErrorKind::Other, e.to_string())),
             }
         }

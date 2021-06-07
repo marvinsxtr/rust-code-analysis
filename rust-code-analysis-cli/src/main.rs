@@ -24,7 +24,7 @@ use walkdir::{DirEntry, WalkDir};
 use formats::Format;
 
 // Enums
-use rust_code_analysis::LANG;
+use rust_code_analysis::{CcommentParser, CppParser, JavaParser, JavascriptParser, LANG, PythonParser, RustParser, TsxParser, TypescriptParser};
 
 // Structs
 use rust_code_analysis::{
@@ -35,7 +35,7 @@ use rust_code_analysis::{
 // Functions
 use rust_code_analysis::{
     action, fix_includes, get_from_ext, get_function_spaces, guess_language, preprocess, read_file,
-    read_file_with_eol, write_file,
+    read_file_with_eol, write_file, find
 };
 
 // Traits
@@ -134,13 +134,68 @@ fn act_on_file(language: Option<LANG>, path: PathBuf, cfg: &Config) -> std::io::
         let cfg = FunctionCfg { path: path.clone() };
         action::<Function>(&language, source, &path, pr, cfg)
     } else if !cfg.find_filter.is_empty() {
-        let cfg = FindCfg {
-            path: path.clone(),
-            filters: cfg.find_filter.clone(),
-            line_start: cfg.line_start,
-            line_end: cfg.line_end,
-        };
-        action::<Find>(&language, source, &path, pr, cfg)
+        if let Some(output_format) = &cfg.output_format {
+            match language {
+                LANG::Mozjs => {
+                    let parser = RustParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Javascript => {
+                    let parser = JavascriptParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Java => {
+                    let parser = JavaParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Rust => {
+                    let parser = RustParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Cpp => {
+                    let parser = CppParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Python => {
+                    let parser = PythonParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Tsx => {
+                    let parser = TsxParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Typescript => {
+                    let parser = TypescriptParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Ccomment => {
+                    let parser = CcommentParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+                LANG::Preproc => {
+                    let parser = PreprocParser::new(source, &path, pr);
+                    let res = find(&parser, &cfg.find_filter);
+                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
+                },
+            }
+        } else {
+            let cfg = FindCfg {
+                path: path.clone(),
+                filters: cfg.find_filter.clone(),
+                line_start: cfg.line_start,
+                line_end: cfg.line_end,
+            };
+            action::<Find>(&language, source, &path, pr, cfg)
+        }
     } else if cfg.count_lock.is_some() {
         let cfg = CountCfg {
             filters: cfg.count_filter.clone(),
