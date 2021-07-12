@@ -25,6 +25,8 @@ pub trait Checker {
     fn is_error(node: &Node) -> bool {
         node.object().is_error()
     }
+
+    fn is_feature(node: &Node) -> bool;
 }
 
 impl Checker for PreprocCode {
@@ -34,6 +36,7 @@ impl Checker for PreprocCode {
     mk_checker!(is_func,);
     mk_checker!(is_func_space,);
     mk_checker!(is_non_arg,);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for CcommentCode {
@@ -51,6 +54,8 @@ impl Checker for CcommentCode {
         let code = &code[node.object().start_byte()..node.object().end_byte()];
         AC.is_match(code)
     }
+
+    mk_checker!(is_feature,);
 }
 
 impl Checker for CppCode {
@@ -89,6 +94,7 @@ impl Checker for CppCode {
 
     mk_else_if!(IfStatement);
     mk_checker!(is_non_arg, LPAREN, LPAREN2, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for PythonCode {
@@ -108,6 +114,7 @@ impl Checker for PythonCode {
     mk_checker!(is_func, FunctionDefinition);
     mk_checker!(is_func_space, Module, FunctionDefinition, ClassDefinition);
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for JavaCode {
@@ -117,6 +124,7 @@ impl Checker for JavaCode {
     mk_checker!(is_func, MethodDeclaration);
     mk_checker!(is_func_space, Program, ClassDeclaration);
     mk_checker!(is_non_arg,);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for MozjsCode {
@@ -156,6 +164,7 @@ impl Checker for MozjsCode {
         false
     }
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for JavascriptCode {
@@ -185,6 +194,7 @@ impl Checker for JavascriptCode {
     );
     mk_else_if!(IfStatement);
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for TypescriptCode {
@@ -224,6 +234,7 @@ impl Checker for TypescriptCode {
         false
     }
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for TsxCode {
@@ -254,6 +265,7 @@ impl Checker for TsxCode {
     );
     mk_else_if!(IfStatement);
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN);
+    mk_checker!(is_feature,);
 }
 
 impl Checker for RustCode {
@@ -292,4 +304,32 @@ impl Checker for RustCode {
         ClosureExpression
     );
     mk_checker!(is_non_arg, LPAREN, COMMA, RPAREN, AttributeItem);
+    mk_checker!(
+        is_feature,
+        MacroRulesBANG,
+        Lifetime2,
+        Async,
+        Await,
+        Trait,
+        Unsafe,
+        Where,
+        MacroDefinition,
+        MacroRule,
+        WhereClause,
+        WherePredicate,
+        TraitItem,
+        TraitBounds,
+        HigherRankedTraitBound,
+        RemovedTraitBound,
+        Lifetime,
+        ForLifetimes,
+        MacroInvocation,
+        AwaitExpression,
+        UnsafeBlock,
+        AsyncBlock,
+        MacroDefinitionRepeat1,
+        WhereClauseRepeat1,
+        TraitBoundsRepeat1,
+        ForLifetimesRepeat1
+    );
 }

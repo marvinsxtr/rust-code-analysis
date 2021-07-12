@@ -244,7 +244,7 @@ struct State<'a> {
 /// // Gets all function spaces data of the code contained in foo.c
 /// metrics(&parser, &path).unwrap();
 /// ```
-pub fn metrics<'a, T: ParserTrait>(parser: &'a T, path: &'a Path) -> Option<FuncSpace> {
+pub fn metrics<'a, T: ParserTrait>(parser: &'a T, _path: &'a Path) -> Option<FuncSpace> {
     let code = parser.get_code();
     let node = parser.get_root();
     let mut cursor = node.object().walk();
@@ -266,7 +266,9 @@ pub fn metrics<'a, T: ParserTrait>(parser: &'a T, path: &'a Path) -> Option<Func
         let func_space = T::Checker::is_func(&node) || T::Checker::is_func_space(&node);
         let unit = kind == SpaceKind::Unit;
 
-        let new_level = if func_space {
+        let feature = T::Checker::is_feature(&node);
+
+        let new_level = if feature {
             let state = State {
                 space: FuncSpace::new::<T::Getter>(&node, code, kind),
                 halstead_maps: HalsteadMaps::new(),
@@ -305,10 +307,7 @@ pub fn metrics<'a, T: ParserTrait>(parser: &'a T, path: &'a Path) -> Option<Func
 
     finalize::<T>(&mut state_stack, std::usize::MAX);
 
-    state_stack.pop().map(|mut state| {
-        state.space.name = path.to_str().map(|name| name.to_string());
-        state.space
-    })
+    state_stack.pop().map(|state| state.space)
 }
 
 /// Configuration options for computing

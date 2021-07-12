@@ -1,9 +1,9 @@
+use serde::Serialize;
 use std::fs::File;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
-use serde::Serialize;
 
 #[derive(Debug, Clone)]
 pub enum Format {
