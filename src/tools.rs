@@ -3,6 +3,7 @@ use crate::langs::*;
 use regex::bytes::Regex;
 use std::cmp::Ordering;
 use std::collections::HashMap;
+use std::env;
 use std::fs::{self, File};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
@@ -347,6 +348,13 @@ pub(crate) fn guess_file<S: ::std::hash::BuildHasher>(
     }
 
     vec![]
+}
+
+pub fn node_mode() -> bool {
+    match env::var("NODE_MODE") {
+        Ok(_) => true,
+        Err(_) => false,
+    }
 }
 
 #[cfg(test)]

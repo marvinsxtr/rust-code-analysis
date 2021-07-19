@@ -343,10 +343,22 @@ impl Getter for TsxCode {
 }
 
 impl Getter for RustCode {
-    fn get_func_space_name<'a>(node: &Node, _code: &'a [u8]) -> Option<&'a str> {
+    fn get_func_space_name<'a>(node: &Node, code: &'a [u8]) -> Option<&'a str> {
         // we're in a function or in a class or an impl
         // for an impl: we've  'impl ... type {...'
-        Some(node.object().kind())
+        if node_mode() {
+            return Some(node.object().kind());
+        }
+        if let Some(name) = node
+            .object()
+            .child_by_field_name("name")
+            .or_else(|| node.object().child_by_field_name("type"))
+        {
+            let code = &code[name.start_byte()..name.end_byte()];
+            std::str::from_utf8(code).ok()
+        } else {
+            Some("<anonymous>")
+        }
     }
 
     fn get_space_kind(node: &Node) -> SpaceKind {

@@ -24,10 +24,7 @@ use walkdir::{DirEntry, WalkDir};
 use formats::Format;
 
 // Enums
-use rust_code_analysis::{
-    CcommentParser, CppParser, JavaParser, JavascriptParser, PythonParser, RustParser, TsxParser,
-    TypescriptParser, LANG,
-};
+use rust_code_analysis::{RustParser, LANG};
 
 // Structs
 use rust_code_analysis::{
@@ -139,56 +136,12 @@ fn act_on_file(language: Option<LANG>, path: PathBuf, cfg: &Config) -> std::io::
     } else if !cfg.find_filter.is_empty() {
         if let Some(output_format) = &cfg.output_format {
             match language {
-                LANG::Mozjs => {
-                    let parser = RustParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Javascript => {
-                    let parser = JavascriptParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Java => {
-                    let parser = JavaParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
                 LANG::Rust => {
                     let parser = RustParser::new(source, &path, pr);
                     let res = find(&parser, &cfg.find_filter);
                     output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
                 }
-                LANG::Cpp => {
-                    let parser = CppParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Python => {
-                    let parser = PythonParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Tsx => {
-                    let parser = TsxParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Typescript => {
-                    let parser = TypescriptParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Ccomment => {
-                    let parser = CcommentParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
-                LANG::Preproc => {
-                    let parser = PreprocParser::new(source, &path, pr);
-                    let res = find(&parser, &cfg.find_filter);
-                    output_format.dump_formats(&res, &path, &cfg.output, cfg.pretty)
-                }
+                _ => Ok(()),
             }
         } else {
             let cfg = FindCfg {

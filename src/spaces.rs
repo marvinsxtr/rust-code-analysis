@@ -15,8 +15,8 @@ use crate::loc::{self, Loc};
 use crate::mi::{self, Mi};
 use crate::nom::{self, Nom};
 
-use crate::dump_metrics::*;
 use crate::traits::*;
+use crate::{dump_metrics::*, node_mode};
 
 /// The list of supported space kinds.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
@@ -244,7 +244,8 @@ struct State<'a> {
 /// // Gets all function spaces data of the code contained in foo.c
 /// metrics(&parser, &path).unwrap();
 /// ```
-pub fn metrics<'a, T: ParserTrait>(parser: &'a T, _path: &'a Path) -> Option<FuncSpace> {
+pub fn metrics<'a, T: ParserTrait>(parser: &'a T, path: &'a Path) -> Option<FuncSpace> {
+    let node_mode = node_mode();
     let code = parser.get_code();
     let node = parser.get_root();
     let mut cursor = node.object().walk();
@@ -268,7 +269,12 @@ pub fn metrics<'a, T: ParserTrait>(parser: &'a T, _path: &'a Path) -> Option<Fun
 
         let feature = T::Checker::is_feature(&node);
 
-        let new_level = if feature {
+        let new_level_condition = match node_mode {
+            true => feature || unit,
+            false => func_space,
+        };
+
+        let new_level = if new_level_condition {
             let state = State {
                 space: FuncSpace::new::<T::Getter>(&node, code, kind),
                 halstead_maps: HalsteadMaps::new(),
@@ -306,8 +312,11 @@ pub fn metrics<'a, T: ParserTrait>(parser: &'a T, _path: &'a Path) -> Option<Fun
     }
 
     finalize::<T>(&mut state_stack, std::usize::MAX);
-
-    state_stack.pop().map(|state| state.space)
+    
+    state_stack.pop().map(|mut state| {
+        state.space.name = path.to_str().map(|name| name.to_string());
+        state.space
+    })
 }
 
 /// Configuration options for computing
