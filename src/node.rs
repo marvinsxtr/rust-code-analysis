@@ -103,17 +103,13 @@ impl<'a> Serialize for Node<'a> {
         let start_position = node.start_position();
         let end_position = node.end_position();
 
-        let mut s = serializer.serialize_struct("Node", 4)?;
-        s.serialize_field("kind", node.kind())?;
-        s.serialize_field("kind_id", &node.kind_id())?;
-        s.serialize_field(
-            "start_position",
-            &[start_position.row + 1, start_position.column + 1],
-        )?;
-        s.serialize_field(
-            "end_position",
-            &[end_position.row + 1, end_position.column + 1],
-        )?;
+        let mut s = serializer.serialize_struct("Node", 6)?;
+        s.serialize_field("kind", &node.kind_id())?;
+        s.serialize_field("name", node.kind())?;
+        s.serialize_field("start_line",&(start_position.row + 1))?;
+        s.serialize_field("start_column",&(start_position.column + 1))?;
+        s.serialize_field("end_line",&(end_position.row + 1))?;
+        s.serialize_field("end_column",&(end_position.column + 1))?;
         s.end()
     }
 }
